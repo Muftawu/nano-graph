@@ -6,11 +6,13 @@
 #include <time.h>
 
 #define FPS 60
-#define width 800
-#define height 600
+#define width 1000
+#define height 900
 #define tick_len 12
 #define center                                                                 \
   (Vector2) { 0.5 * width, 0.5 * height }
+
+float scale(float x) { return x / 2; }
 
 void plot_grid(int ticks_per_axes) {
   // ticks
@@ -96,19 +98,35 @@ void plot_line(float m, float c) {
   Vector2 line_point_2 = (Vector2){center.x, center.y + (-c * tick_len)};
 
   // interpolation
-  // do next
+  float x_new_val1 = (line_point_1.x);
+  float y_new_val1 = ((m * x_new_val1) + c);
+
+  printf("(x1, y1) => (%f, %f) \n", line_point_1.x, line_point_1.y);
+  printf("(x2, y2) => (%f, %f) \n", x_new_val1, y_new_val1);
+  // printf("(x2, y2) => (%f, %f) \n", line_point_2.x, line_point_2.y);
+
+  // float x_new_val2 = line_point_2.x * 2;
+  // float y_new_val2 = (m * x_new_val2) + c;
+
+  Vector2 interpolation1 =
+      (Vector2){x_new_val1 * tick_len, y_new_val1 * tick_len};
+  // Vector2 interpolation2 = (Vector2){x_new_val2, y_new_val2};
+
+  // printf("(x-new-val, y-new-val) => (%f, %f) \n", interpolation1.x,
+  //        interpolation1.y);
+  // printf("%f, %f \n", interpolation2.x, interpolation2.y);
 
   DrawText(eq, 0.05 * width, 0.05 * height, 20, RAYWHITE);
   DrawText(y_intercept, 0.05 * width, 0.10 * height, 20, RAYWHITE);
   DrawText(x_intercept, 0.05 * width, 0.15 * height, 20, RAYWHITE);
 
-  // intercept points
+  // intercept points (real values)
   DrawCircle(line_point_1.x, line_point_1.y, 5, RAYWHITE);
   DrawCircle(line_point_2.x, line_point_2.y, 5, RAYWHITE);
 
   // interpolation points
-  // DrawCircle(interpolation_point1.x, interpolation_point1.y, 5, YELLOW);
-  // DrawCircle(interpolation_point2.x, interpolation_point2.y, 5, YELLOW);
+  DrawCircle(interpolation1.x, interpolation1.y, 5, YELLOW);
+  // DrawCircle(interpolation2.x, interpolation2.y, 5, YELLOW);
 
   // // line connecting points
   DrawLine(line_point_1.x, line_point_1.y, line_point_2.x, line_point_2.y,
