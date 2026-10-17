@@ -14,6 +14,8 @@
 
 float scale(float x) { return x / 2; }
 
+float unit_to_pixel(float val) { return center.x + (tick_len * val); }
+
 void plot_grid(int ticks_per_axes) {
   // ticks
   int half_axes_height = (int)(0.5 * height);
@@ -80,60 +82,85 @@ void plot_grid(int ticks_per_axes) {
   }
 }
 
-void plot_line(float m, float c) {
+void plot_line(float m, float c, Color lineColor, int showInterpolation) {
   // y = mx + c
   float x = 0.0f;
   float y = 0.0f;
+  float interpolation_rate = 2.0f;
   float x_intercept_val = (y - c) / (m);
 
+  // original line intercept points
+  Vector2 line_intercept_point1 =
+      (Vector2){center.x + (x_intercept_val * tick_len), center.y};
+  Vector2 line_intercept_point2 =
+      (Vector2){center.x, center.y + (-c * tick_len)};
+
+  // interpolation line poitns
+  float interpolation_val_x1 = x_intercept_val * interpolation_rate;
+  float interpolation_val_x2 = interpolation_val_x1 * -1;
+
+  Vector2 line_interpolation_point1 =
+      (Vector2){center.x + (tick_len * interpolation_val_x1),
+                center.y + (((m * interpolation_val_x1) + c) * -tick_len)};
+  Vector2 line_interpolation_point2 =
+      (Vector2){center.x + (tick_len * interpolation_val_x2),
+                center.y + (((m * interpolation_val_x2) + c) * -tick_len)};
+
+  // graph texts
+  const char *pu_ratio =
+      TextFormat("1 unit = %.2f pixels \n", unit_to_pixel(1));
   const char *eq = TextFormat("y = (%.2f)x + %.2f \n", m, c);
   const char *x_intercept =
       TextFormat("x-intercept = (%.2f) \n", x_intercept_val);
   const char *y_intercept = TextFormat("y-intercept = (%.2f) \n", c);
+  const char *intercept_label_x = TextFormat(
+      "(%.2f, %.2f) \n", line_intercept_point1.x, line_intercept_point1.y);
+  const char *intercept_label_y = TextFormat(
+      "(%.2f, %.2f) \n", line_intercept_point2.x, line_intercept_point2.y);
+  float intercept_label_offset = 3;
 
-  int interpolation_rate = 2;
-
-  Vector2 line_point_1 =
-      (Vector2){center.x + (x_intercept_val * tick_len), center.y};
-  Vector2 line_point_2 = (Vector2){center.x, center.y + (-c * tick_len)};
-
-  // interpolation
-  float x_new_val1 = (line_point_1.x);
-  float y_new_val1 = ((m * x_new_val1) + c);
-
-  printf("(x1, y1) => (%f, %f) \n", line_point_1.x, line_point_1.y);
-  printf("(x2, y2) => (%f, %f) \n", x_new_val1, y_new_val1);
-  // printf("(x2, y2) => (%f, %f) \n", line_point_2.x, line_point_2.y);
-
-  // float x_new_val2 = line_point_2.x * 2;
-  // float y_new_val2 = (m * x_new_val2) + c;
-
-  Vector2 interpolation1 =
-      (Vector2){x_new_val1 * tick_len, y_new_val1 * tick_len};
-  // Vector2 interpolation2 = (Vector2){x_new_val2, y_new_val2};
-
-  // printf("(x-new-val, y-new-val) => (%f, %f) \n", interpolation1.x,
-  //        interpolation1.y);
-  // printf("%f, %f \n", interpolation2.x, interpolation2.y);
-
+  // pixel-to-unit-ratio
+  DrawText(pu_ratio, 0.80 * width, 0.05 * height, 20, RAYWHITE);
   DrawText(eq, 0.05 * width, 0.05 * height, 20, RAYWHITE);
   DrawText(y_intercept, 0.05 * width, 0.10 * height, 20, RAYWHITE);
   DrawText(x_intercept, 0.05 * width, 0.15 * height, 20, RAYWHITE);
 
-  // intercept points (real values)
-  DrawCircle(line_point_1.x, line_point_1.y, 5, RAYWHITE);
-  DrawCircle(line_point_2.x, line_point_2.y, 5, RAYWHITE);
+  DrawText(intercept_label_x, line_intercept_point1.x + intercept_label_offset,
+           line_intercept_point1.y + intercept_label_offset, 20, RAYWHITE);
+  DrawText(intercept_label_y, line_intercept_point2.x + intercept_label_offset,
+           line_intercept_point2.y + intercept_label_offset, 20, RAYWHITE);
 
-  // interpolation points
-  DrawCircle(interpolation1.x, interpolation1.y, 5, YELLOW);
-  // DrawCircle(interpolation2.x, interpolation2.y, 5, YELLOW);
+  // line intercept points (real values)
+  DrawCircle(line_intercept_point1.x, line_intercept_point1.y, 5, RAYWHITE);
+  DrawCircle(line_intercept_point2.x, line_intercept_point2.y, 5, RAYWHITE);
+  DrawLine(line_interpolation_point1.x, line_interpolation_point1.y,
+           line_interpolation_point2.x, line_interpolation_point2.y, RAYWHITE);
 
-  // // line connecting points
-  DrawLine(line_point_1.x, line_point_1.y, line_point_2.x, line_point_2.y,
-           RAYWHITE);
+  // line interpolation points
+  if (showInterpolation) {
+    float interpolation_offset = 2;
+    const char *interpolation_label_x =
+        TextFormat("(%.2f, %.2f) \n", line_interpolation_point1.x,
+                   line_interpolation_point1.y);
+    const char *interpolation_label_y =
+        TextFormat("(%.2f, %.2f) \n", line_interpolation_point2.x,
+                   line_interpolation_point2.y);
+    DrawText(interpolation_label_x,
+             line_interpolation_point1.x + intercept_label_offset,
+             line_interpolation_point1.y + intercept_label_offset, 20,
+             RAYWHITE);
+    DrawText(
+        intercept_label_y, line_interpolation_point2.x + intercept_label_offset,
+        line_interpolation_point2.y + intercept_label_offset, 20, RAYWHITE);
 
-  // DrawLine(interpolation_point1.x, interpolation_point1.y,
-  //          interpolation_point2.x, interpolation_point2.y, RAYWHITE);
+    DrawCircle(line_interpolation_point1.x, line_interpolation_point1.y, 5,
+               RAYWHITE);
+    DrawCircle(line_interpolation_point2.x, line_interpolation_point2.y, 5,
+               RAYWHITE);
+  }
+
+  // prints
+  printf("unit to pixel: %f => %f \n", -5.0f, unit_to_pixel(-5));
 }
 
 int main() {
@@ -148,7 +175,7 @@ int main() {
     ClearBackground(BLACK);
 
     plot_grid((int)(0.5 * width));
-    plot_line(2, 5);
+    plot_line(2, 5, RAYWHITE, 1);
 
     EndDrawing();
   }
