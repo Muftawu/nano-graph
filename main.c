@@ -1,4 +1,6 @@
 #include "raylib.h"
+#include <ctype.h>
+#include <math.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,9 +21,6 @@ float unit_to_pixel(float val) { return center.x + (tick_len * val); }
 void plot_grid(int ticks_per_axes) {
   // ticks
   int half_axes_height = (int)(0.5 * height);
-
-  // axes
-  // Vector2 center = (Vector2){0.5 * width, 0.5 * height};
 
   // y-coords
   Vector2 y_axes[2] = {
@@ -107,8 +106,6 @@ void plot_line(float m, float c, Color lineColor, int showInterpolation) {
                 center.y + (((m * interpolation_val_x2) + c) * -tick_len)};
 
   // graph texts
-  const char *pu_ratio =
-      TextFormat("1 unit = %.2f pixels \n", unit_to_pixel(1));
   const char *eq = TextFormat("y = (%.2f)x + %.2f \n", m, c);
   const char *x_intercept =
       TextFormat("x-intercept = (%.2f) \n", x_intercept_val);
@@ -120,7 +117,6 @@ void plot_line(float m, float c, Color lineColor, int showInterpolation) {
   float intercept_label_offset = 3;
 
   // pixel-to-unit-ratio
-  DrawText(pu_ratio, 0.80 * width, 0.05 * height, 20, RAYWHITE);
   DrawText(eq, 0.05 * width, 0.05 * height, 20, RAYWHITE);
   DrawText(y_intercept, 0.05 * width, 0.10 * height, 20, RAYWHITE);
   DrawText(x_intercept, 0.05 * width, 0.15 * height, 20, RAYWHITE);
@@ -158,9 +154,63 @@ void plot_line(float m, float c, Color lineColor, int showInterpolation) {
     DrawCircle(line_interpolation_point2.x, line_interpolation_point2.y, 5,
                RAYWHITE);
   }
+}
 
-  // prints
-  printf("unit to pixel: %f => %f \n", -5.0f, unit_to_pixel(-5));
+void plot_quadratic(float a, float b, float c) {
+  // y = ax^2 + bx + c
+  float x = 0.0f;
+
+  float ac_multiplicative_factor = a * c;
+  int is_multiplicative_factor_positive = ac_multiplicative_factor > 0;
+  int maximum_factors_count = is_multiplicative_factor_positive
+                                  ? ac_multiplicative_factor
+                                  : -ac_multiplicative_factor;
+
+  // overall multiplicative factors
+  int multiplicative_factor_list[maximum_factors_count] = {};
+  multiplicative_factor_list[0] = 1;
+
+  // selected factors
+  int selected_factors_count = 0;
+  int *selected_factors_list = malloc(sizeof(int));
+
+  // find all factor of ac_multiplicative_factor
+  for (int i = 1; i < maximum_factors_count + 1; i++) {
+    float res = ac_multiplicative_factor / i;
+    if ((int)res == res) {
+      selected_factors_count += 1;
+      multiplicative_factor_list[i] = (int)res;
+    }
+  }
+
+  printf("selected factors count: %d \n", selected_factors_count);
+
+  int *temp =
+      realloc(selected_factors_list, sizeof(int) * selected_factors_count);
+
+  int temp_idx = 0;
+  for (int i = 0; i < maximum_factors_count; i++) {
+    int idx = multiplicative_factor_list[i];
+    if (idx != 0) {
+      temp[temp_idx] = idx;
+      temp_idx += 1;
+    }
+  }
+
+  for (int i = 0; i < selected_factors_count; i++) {
+    printf("%d \t", temp[i]);
+  }
+  printf("\n");
+
+  // NOTE: Continue from here, we have the factors now, now have to decide how
+  // pairs combine to form the x coefficient values
+
+  float y_intercept_val = a * pow(x, 2) + b * x + c;
+  float x_intercept_val = 0.0f;
+
+  Vector2 y_intercept = (Vector2){0, y_intercept_val};
+  Vector2 x_intercept1 = (Vector2){0, 0};
+  Vector2 x_intercept2 = (Vector2){0, 0};
 }
 
 int main() {
@@ -168,14 +218,30 @@ int main() {
   InitWindow(width, height, "Nano Graph");
   SetTargetFPS(FPS);
 
-  const char **equation = "y = 2x+5";
+  const char *pu_ratio =
+      TextFormat("1 unit = %.2f pixels \n", unit_to_pixel(1));
 
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(BLACK);
 
+    DrawText(pu_ratio, 0.750 * width, 0.05 * height, 20, RAYWHITE);
+
+    /**
+    arg1 = ticks per axes
+    **/
     plot_grid((int)(0.5 * width));
-    plot_line(2, 5, RAYWHITE, 1);
+
+    /**
+     * **/
+    // plot_line(2, 5, RAYWHITE, 1);
+
+    /**
+     arg1 = a
+     arg2 = b
+     arg3 = c
+    **/
+    plot_quadratic(1, -1, -12);
 
     EndDrawing();
   }

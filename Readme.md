@@ -20,4 +20,13 @@
     - c = y-intercept
 
 
+- Equation of Quadratic Equation
+    - `y = ax^2 + bx + c` 
+    - a = coefficient of x^2
+    - b = coefficient of x 
+    - c = constant
 
+
+### Test Equations
+- Line: `y = 2x + 5`
+- Quadratic : `y = x^2 - x -12`

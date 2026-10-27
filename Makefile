@@ -1,7 +1,7 @@
 cc = gcc
 srcs = main.c
 cflags = -Wall -Wextra -Iinclude
-ldflags = -Llib -lraylib
+ldflags = -Llib -lraylib -lm
 target = program 
 
 default:
