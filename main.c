@@ -14,8 +14,6 @@
 #define center                                                                 \
   (Vector2) { 0.5 * width, 0.5 * height }
 
-float scale(float x) { return x / 2; }
-
 float unit_to_pixel(float val) { return center.x + (tick_len * val); }
 
 void plot_grid(int ticks_per_axes) {
@@ -160,11 +158,23 @@ void plot_quadratic(float a, float b, float c) {
   // y = ax^2 + bx + c
   float x = 0.0f;
 
+  // graph texts
+  const char *eq = TextFormat("y = (%.2f)x^2 + (%.2f)x + (%.2f) \n", a, b, c);
+  const char *coeff_x2 = TextFormat("a = %.2f\n", a);
+  const char *coeff_x = TextFormat("b = %.2f\n", b);
+  const char *c_const = TextFormat("c = %.2f\n", c);
+
+  DrawText(eq, 0.05 * width, 0.05 * height, 20, RAYWHITE);
+  DrawText(coeff_x2, 0.05 * width, 0.10 * height, 20, RAYWHITE);
+  DrawText(coeff_x, 0.05 * width, 0.15 * height, 20, RAYWHITE);
+  DrawText(c_const, 0.05 * width, 0.20 * height, 20, RAYWHITE);
+
   float ac_multiplicative_factor = a * c;
   int is_multiplicative_factor_positive = ac_multiplicative_factor > 0;
+
   int maximum_factors_count = is_multiplicative_factor_positive
                                   ? ac_multiplicative_factor
-                                  : -ac_multiplicative_factor;
+                                  : -1 * ac_multiplicative_factor;
 
   // overall multiplicative factors
   int multiplicative_factor_list[maximum_factors_count] = {};
@@ -176,34 +186,38 @@ void plot_quadratic(float a, float b, float c) {
 
   // find all factor of ac_multiplicative_factor
   for (int i = 1; i < maximum_factors_count + 1; i++) {
-    float res = ac_multiplicative_factor / i;
+    float res = (float)maximum_factors_count / i;
     if ((int)res == res) {
       selected_factors_count += 1;
-      multiplicative_factor_list[i] = (int)res;
+      multiplicative_factor_list[maximum_factors_count - i] = (int)res;
     }
   }
 
-  printf("selected factors count: %d \n", selected_factors_count);
-
+  // selected factor values
+  int temp_idx = 0;
+  int half_index_value = (int)(selected_factors_count / 2);
   int *temp =
       realloc(selected_factors_list, sizeof(int) * selected_factors_count);
 
-  int temp_idx = 0;
   for (int i = 0; i < maximum_factors_count; i++) {
     int idx = multiplicative_factor_list[i];
     if (idx != 0) {
-      temp[temp_idx] = idx;
+      if (!is_multiplicative_factor_positive && temp_idx >= half_index_value) {
+        temp[temp_idx] = -1 * idx;
+      } else {
+        temp[temp_idx] = idx;
+      }
       temp_idx += 1;
     }
   }
 
+  printf("Multiplicative factors: \t");
   for (int i = 0; i < selected_factors_count; i++) {
     printf("%d \t", temp[i]);
   }
   printf("\n");
 
-  // NOTE: Continue from here, we have the factors now, now have to decide how
-  // pairs combine to form the x coefficient values
+  // NOTE: get factor pair for b value
 
   float y_intercept_val = a * pow(x, 2) + b * x + c;
   float x_intercept_val = 0.0f;
